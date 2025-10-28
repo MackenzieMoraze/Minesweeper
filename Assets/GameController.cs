@@ -17,27 +17,18 @@ public class GameController : MonoBehaviour
     [SerializeField] TMP_InputField width;
     [SerializeField] TMP_InputField  bombs;
 
+    [SerializeField] TMP_Text timeText;
+    [SerializeField] TMP_Text bombsLeftText;
+
+
 
     [SerializeField] Canvas canvas;
-    [SerializeField] Button startButton;
     [SerializeField] Vector2 gridOffset;
     [SerializeField]public int gridWidth = 10;
     [SerializeField] public int gridHeight = 10;
     [SerializeField] float tileGapSize = 0.5f;
 
-    private void Awake()
-    {
-
-    }
-
-    void OnEnable()
-    {
-      
-    }
-    void OnDisable()
-    {
-       
-    }
+   
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -50,14 +41,19 @@ public class GameController : MonoBehaviour
 
     }
 
+    public void StartGame()
+    {
+        GenerateGrid();
+        
 
+    }
 
-    public void GenerateGrid()
+    private void GenerateGrid()
     {
         gridHeight = int.Parse(height.text);
         gridWidth = int.Parse(width.text);
         bombNumber = int.Parse(bombs.text);
-        
+
 
         grid = new Tile[gridWidth, gridHeight];
         Debug.Log("Grid Generating");
@@ -98,9 +94,11 @@ public class GameController : MonoBehaviour
         }
     }
 
+
+// Helper Functions
     public Tile GetTile(Vector2Int coords)
     {
-        return grid[coords.x,coords.y];
+        return grid[coords.x, coords.y];
     }
 
 

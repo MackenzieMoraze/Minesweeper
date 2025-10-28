@@ -13,12 +13,9 @@ public class Tile : MonoBehaviour
     private int closeBombs;
 
     public bool isBomb = false;
+    public bool isChecked = false;
     public int tileIndex;
     [SerializeField] TMP_Text text;
-
-
-
-
 
     Vector2Int[] cardinalOffsets = {
         new Vector2Int(0, 1), // North
@@ -42,7 +39,7 @@ public class Tile : MonoBehaviour
         gameController = FindAnyObjectByType<GameController>();
 
         neighbours = new List<Tile>();
-        if (isBomb) SetText("B");
+        //if (isBomb) SetText("B");
     }
 
     // Update is called once per frame
@@ -59,15 +56,47 @@ public class Tile : MonoBehaviour
     public void Clicked()
     {
         //clickedIndex = tileIndex;
-
+        if (isChecked == true) return;
+        isChecked = true;
         if (isBomb)
         {
             SetText("B");
             return;
         }
 
+        FindNeighbours();
+        FindBombsInNeighbours();
 
+        if (closeBombs != 0)
+        {
+            SetText(closeBombs.ToString());
+        }
+        else
+        {
+            SetText("");
+            foreach (Tile tile in neighbours)
+            {
+                tile.Clicked();
+            }
+        }
+        GetComponent<Button>().interactable = false;
+        
+    }
 
+    private void FindBombsInNeighbours()
+    {
+        for (int i = 0; i < neighbours.Count; i++)
+        {
+            Tile nTile = neighbours[i];
+            if (nTile.isBomb)
+            {
+                closeBombs++;
+            }
+        }
+    }
+
+    public void FindNeighbours()
+    {
         Vector2Int myCoords = gameController.GetCoordsFromIndex(tileIndex);
         int myX = myCoords.x;
         int myY = myCoords.y;
@@ -89,31 +118,7 @@ public class Tile : MonoBehaviour
                 neighbours.Add(gameController.GetTile(neighborPos));
             }
         }
-     
-
-
-        for (int i = 0; i < neighbours.Count; i++)
-        {
-            Tile nTile = neighbours[i];
-            if (nTile.isBomb)
-            {
-                closeBombs++;
-            }
-        }
-
-        if(closeBombs !=0)
-        {
-            SetText(closeBombs.ToString());
-        }else 
-        {
-            SetText("");
-            foreach (Tile tile in neighbours)
-            {
-                tile.GetComponent<Button>().onClick.Invoke();
-            }
-        }
     }
-
 
     private bool IsValidGridPosition(Vector2Int position, int gridWidth, int gridHeight)
     {
