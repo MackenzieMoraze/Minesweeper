@@ -61,6 +61,7 @@ public class Tile : MonoBehaviour
         if (isBomb)
         {
             SetText("B");
+            GameController.instance.LoseGame();
             return;
         }
 
@@ -80,8 +81,12 @@ public class Tile : MonoBehaviour
             }
         }
         GetComponent<Button>().interactable = false;
+
+        GameController.Instance.CheckIfGameOver();
         
     }
+
+    
 
     private void FindBombsInNeighbours()
     {
