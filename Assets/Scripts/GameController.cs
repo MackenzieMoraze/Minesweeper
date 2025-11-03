@@ -55,6 +55,7 @@ public class GameController : MonoBehaviour
     [SerializeField] public int gridHeight = 10;
     [SerializeField] float tileGapSize = 0.5f;
 
+    private StopWatch stopWatch;
 
 
 
@@ -74,7 +75,7 @@ public class GameController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        stopWatch = GetComponent<StopWatch>();
     }
 
     // Update is called once per frame
@@ -87,8 +88,11 @@ public class GameController : MonoBehaviour
 
     public void StartGame()
     {
+        stopWatch.StartStopwatch();
         GenerateGrid();
         
+
+
     }
 
     private void GenerateGrid()
@@ -155,21 +159,18 @@ public class GameController : MonoBehaviour
 
         winLoseText.text = "You Win, no more bombs";
         winLoseText.gameObject.SetActive(true);
+        stopWatch.StopStopwatch();
 
         Debug.Log("You Win, no more bombs");
     }
 
     public void LoseGame()
     {
-        //reveal all bombs
-
-
-
-
-        //stop timer
-      
+     
+        // turn on winlose text
         winLoseText.gameObject.SetActive(true);
 
+        // show all bombs and set unselected ones to noninteractable
         foreach (Tile tile in grid)
         {
             if (tile.GetComponent<Button>().IsInteractable())
@@ -184,6 +185,7 @@ public class GameController : MonoBehaviour
                 
             }
         }
+        stopWatch.StopStopwatch();
         winLoseText.text = "You Lose, hit a bomb";
     }
 
@@ -207,7 +209,7 @@ public class GameController : MonoBehaviour
             GameObject.Destroy(tile.gameObject);
         }
         grid = null;
-        
+        stopWatch.ResetStopwatch();
         GenerateGrid();
     }
 
