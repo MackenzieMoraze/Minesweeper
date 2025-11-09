@@ -32,6 +32,8 @@ public class GameController : MonoBehaviour
 
 
     public GameObject BoxPrefab;
+    [SerializeField] Color unflaggedColor = Color.white;
+    [SerializeField] Color flaggedColor = Color.orange;
 
 
     public int bombsToSpawn = 10;
@@ -192,13 +194,33 @@ public class GameController : MonoBehaviour
     public void RightClick(Button targetButton)
     {
         //todo flag placing functionality 
-        
-        Tile clickedTile = targetButton.GetComponent<Tile>();
-        clickedTile.GetComponent<Image>().color = Color.orange;
 
-        Debug.Log("Right clicked buttom");
-        uncoveredBombs--;
-        bombsLeftText.text = "Bombs: "+uncoveredBombs.ToString();
+        ToggleFlag(targetButton);
+
+       
+    }
+    
+    private void ToggleFlag(Button button)
+    {
+        Tile clickedTile = button.GetComponent<Tile>();
+        if (clickedTile == null) return;
+
+         Color clickedTileColor = clickedTile.GetComponent<Image>().color;
+        //check if thee tile is unflagged
+        if (clickedTileColor == unflaggedColor)
+        {
+            clickedTile.GetComponent<Image>().color = flaggedColor;
+            uncoveredBombs--;
+            bombsLeftText.text = "Bombs: " + uncoveredBombs.ToString();
+        }
+        else if(clickedTileColor == flaggedColor)
+        {
+            clickedTile.GetComponent<Image>().color = unflaggedColor;
+            uncoveredBombs++;
+            bombsLeftText.text = "Bombs: " + uncoveredBombs.ToString();
+        }
+
+        
     }
 
 
