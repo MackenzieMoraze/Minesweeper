@@ -34,7 +34,7 @@ public class RightClickButton : MonoBehaviour, IPointerClickHandler
         }
         else if (eventData.button == PointerEventData.InputButton.Left)
         {
-            
+            //GameController.instance.LeftClick();
         }
     }
 }

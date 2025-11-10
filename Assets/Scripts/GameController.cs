@@ -1,11 +1,9 @@
 using TMPro;
 using Unity.Mathematics;
-using UnityEditor.Tilemaps;
+using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Android;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Composites;
-using UnityEngine.Tilemaps;
+
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
@@ -15,12 +13,12 @@ public class GameController : MonoBehaviour
     public static GameController Instance
     {
         get
-        { 
-            if(instance == null)
+        {
+            if (instance == null)
             {
                 instance = FindFirstObjectByType<GameController>();
 
-                if(instance != null )
+                if (instance != null)
                 {
                     GameObject gameController = new GameObject(typeof(GameController).Name);
                     instance = gameController.AddComponent<GameController>();
@@ -30,71 +28,58 @@ public class GameController : MonoBehaviour
         }
     }
 
-
-    public GameObject BoxPrefab;
-    [SerializeField] Color unflaggedColor = Color.white;
-    [SerializeField] Color flaggedColor = Color.orange;
-
-
-    public int bombsToSpawn = 10;
-    private Tile[,] grid;
-
-    private int uncoveredBombs;
-
     [SerializeField] TMP_InputField height;
     [SerializeField] TMP_InputField width;
-    [SerializeField] TMP_InputField  bombs;
-
+    [SerializeField] TMP_InputField bombs;
     [SerializeField] TMP_Text timeText;
     [SerializeField] TMP_Text bombsLeftText;
     [SerializeField] TMP_Text winLoseText;
-
-
-
     [SerializeField] Canvas canvas;
+    [SerializeField] Color unflaggedColor = Color.white;
+    [SerializeField] Color flaggedColor = Color.orange;
     [SerializeField] Vector2 gridOffset;
-    [SerializeField]public int gridWidth = 10;
+    [SerializeField] public int gridWidth = 10;
     [SerializeField] public int gridHeight = 10;
     [SerializeField] float tileGapSize = 0.5f;
 
+    AudioSource audioSource;
+    [SerializeField] AudioClip clickAudioClip;
+    [SerializeField] AudioClip flagAudioClip;
+    [SerializeField] AudioClip BombAudioClip;
+
+
+    public GameObject BoxPrefab;
+    private Camera mainCamera;
     private StopWatch stopWatch;
-
-
+    public int bombsToSpawn = 10;
+    private Tile[,] grid;
+    private int uncoveredBombs;
 
     private void Awake()
     {
         if (instance != null && instance != this)
         {
             Destroy(gameObject);
-        } 
+        }
         else
         {
             instance = this;
             DontDestroyOnLoad(gameObject);
         }
+        mainCamera = Camera.main;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         stopWatch = GetComponent<StopWatch>();
+        audioSource = GetComponent<AudioSource>();
     }
-
-    // Update is called once per frame
-    void Update()
-    {
-       
-    }
-
-    
 
     public void StartGame()
     {
         stopWatch.StartStopwatch();
         GenerateGrid();
-        
-
-
     }
 
     private void GenerateGrid()
@@ -104,7 +89,6 @@ public class GameController : MonoBehaviour
         bombsToSpawn = int.Parse(bombs.text);
         uncoveredBombs = bombsToSpawn;
         bombsLeftText.text = "Bombs: " + uncoveredBombs.ToString();
-
 
         grid = new Tile[gridWidth, gridHeight];
         Debug.Log("Grid Generating");
@@ -149,10 +133,10 @@ public class GameController : MonoBehaviour
     {
         foreach (Tile tile in grid)
         {
-            if(tile.GetComponent<Button>().IsInteractable()&&!tile.isBomb)
+            if (tile.GetComponent<Button>().IsInteractable() && !tile.isBomb)
             {
                 //there are still interactable tiles, the game continues
-                return; 
+                return;
             }
         }
         // we know there are no more interactable tiles that arent bombs
@@ -168,10 +152,10 @@ public class GameController : MonoBehaviour
 
     public void LoseGame()
     {
-     
+
         // turn on winlose text
         winLoseText.gameObject.SetActive(true);
-
+        audioSource.PlayOneShot(BombAudioClip);
         // show all bombs and set unselected ones to noninteractable
         foreach (Tile tile in grid)
         {
@@ -180,11 +164,11 @@ public class GameController : MonoBehaviour
                 //there are still interactable tiles, the game continues
                 tile.GetComponent<Button>().interactable = false;
 
-                if(tile.isBomb)
+                if (tile.isBomb)
                 {
                     tile.GetComponent<Image>().color = Color.red;
                 }
-                
+
             }
         }
         stopWatch.StopStopwatch();
@@ -196,16 +180,26 @@ public class GameController : MonoBehaviour
         //todo flag placing functionality 
 
         ToggleFlag(targetButton);
-
-       
+        audioSource.PlayOneShot(flagAudioClip);
     }
-    
+
+    // public void LeftClick()
+    // {
+    //     audioSource.PlayOneShot(clickAudioClip);
+    // }
+
+    public void OnClick(InputAction.CallbackContext context)
+    {
+       
+        audioSource.PlayOneShot(clickAudioClip);
+    }
+
     private void ToggleFlag(Button button)
     {
         Tile clickedTile = button.GetComponent<Tile>();
         if (clickedTile == null) return;
 
-         Color clickedTileColor = clickedTile.GetComponent<Image>().color;
+        Color clickedTileColor = clickedTile.GetComponent<Image>().color;
         //check if thee tile is unflagged
         if (clickedTileColor == unflaggedColor)
         {
@@ -213,20 +207,18 @@ public class GameController : MonoBehaviour
             uncoveredBombs--;
             bombsLeftText.text = "Bombs: " + uncoveredBombs.ToString();
         }
-        else if(clickedTileColor == flaggedColor)
+        else if (clickedTileColor == flaggedColor)
         {
             clickedTile.GetComponent<Image>().color = unflaggedColor;
             uncoveredBombs++;
             bombsLeftText.text = "Bombs: " + uncoveredBombs.ToString();
         }
-
-        
     }
 
 
     public void RestartGame()
     {
-        foreach(Tile tile in grid)
+        foreach (Tile tile in grid)
         {
             GameObject.Destroy(tile.gameObject);
         }
@@ -236,13 +228,12 @@ public class GameController : MonoBehaviour
     }
 
 
-// Helper Functions
+    // Helper Functions
+    #region HelperFunctions
     public Tile GetTile(Vector2Int coords)
     {
         return grid[coords.x, coords.y];
     }
-
-
     public int GetIndexFromCoords(int x, int y)
     {
         return x + y * gridWidth;
@@ -253,7 +244,6 @@ public class GameController : MonoBehaviour
 
         return new Vector2Int(index % gridWidth, index / gridWidth);
     }
-
-
+    #endregion
 
 }
